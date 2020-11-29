@@ -1,30 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 #include <time.h>
-int parseInt(char* c) {
-    int decimal = 0, pos = 0;
-    for (int i = strlen(c) - 1; i>=0 ; i--) {
-        char ch = c[i];
-        if (ch >= 48 && ch <= 57) {
-            decimal += (ch-48) * pow(16, pos);
-        } else if (ch >= 65 && ch <= 70) {
-            decimal += (ch - 55) * pow(16, pos);
-        }
-        pos++;
-    }
-    return decimal;
-}
+#include "parse.h"
+#include "LinkedList.h"
 
-int main(int argc, char* argv[]) {
-    char* memory[32759];
+int main(int argc, char *argv[]) {
+    char *memory[32759];
     char CODES[60];
     char *c;
     int startADR, size, len, location;
+    node* head = malloc(sizeof(node));
+    head->next = NULL;
+    node* tail = head;
     srand((unsigned int)time(NULL));
     for (int i = 0; i < 32759; i++) {
-        memory[i] = malloc(sizeof(char)*2);
+        memory[i] = malloc(sizeof(char) * 2);
         // memory[i] = "00";
     }
     if (argv[1] == NULL) {
@@ -33,13 +23,13 @@ int main(int argc, char* argv[]) {
     }
 
     FILE *fp = fopen(argv[1], "r");
-    if(fp == NULL) {
+    if (fp == NULL) {
         printf("error: Unvalid file path\n");
         return 0;
     }
     c = fgets(CODES, 16, fp);
     c = fgets(CODES, 5, fp);
-    size = parseInt(c);
+    size = parseDecimal(CODES);
     size = 160;
 
     /* do {
@@ -49,7 +39,7 @@ int main(int argc, char* argv[]) {
     location = startADR;
     printf("start address: %d\n", startADR);
 
-    while(!feof(fp)) {
+    while (!feof(fp)) {
         if (feof(fp)) break;
         char a = fgetc(fp);
         if (a == 'T') {
@@ -59,24 +49,37 @@ int main(int argc, char* argv[]) {
                 i++;
             }
             c = fgets(CODES, 3, fp);
-            len = parseInt(c) * 2;
-            printf("%d ", len);
-            c = fgets(CODES, len+1, fp);
-            printf("%s\n", CODES);
-            for (int i = 0; i < sizeof(CODES); i+=2) {
-                if(CODES[i] == 0) {
+            len = parseDecimal(CODES) * 2;
+            //printf("%d ", len);
+            c = fgets(CODES, len + 1, fp);
+            //printf("%s\n", CODES);
+            for (int i = 0; i < sizeof(CODES); i += 2) {
+                if (CODES[i] == 0) {
                     break;
-                }
-                else { 
-                    printf("%c%c\n", CODES[i], CODES[i+1]);
+                } else {
+                    //printf("%c%c\n", CODES[i], CODES[i + 1]);
                     memory[location][0] = CODES[i];
-                    memory[location][1] = CODES[i+1];
+                    memory[location][1] = CODES[i + 1];
                     location++;
                 }
             }
+        } else if (a == 'M') {
+            c = fgets(CODES, 5, fp);
+            int ADR = startADR + parseDecimal(CODES);
+            c = fgets(CODES, 3, fp);
+            ADR += parseDecimal(CODES);
+            c = fgets(CODES, 3, fp);
+            int modlen = parseDecimal(CODES);
+            add(tail, ADR, modlen);
+            tail = tail->next;
         }
     }
-    for (int i = startADR; i < startADR + size; i++) {
+    /* for (int i = startADR; i < startADR + size; i++) {
         printf("%d: %s\n", i, memory[i]);
+    } */
+    node* tmp = head->next;
+    while (tmp != NULL) {
+        printf("%d %d\n", tmp->ADR, tmp->len);
+        tmp = tmp->next;
     }
 }
