@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     do {
         startADR = rand() % 32759;
     } while (startADR + size > 32758);
-
+    
     printf("start address: %d\n", startADR);
 
     while (!feof(fp)) {
@@ -99,14 +99,14 @@ int main(int argc, char *argv[]) {
             tail = tail->next;
         }
     }
-    printf("Before modifycation\n");
+    printf("Before modification:\n");
     node* tmp = head->next;
     while (tmp != NULL) {
         print(memory, tmp);
         tmp = tmp->next;
     }
     tmp = head->next;
-    printf("After modifycation\n");
+    printf("After modification:\n");
     while (tmp != NULL) {
         modify(memory, tmp, startADR);
         print(memory, tmp);
