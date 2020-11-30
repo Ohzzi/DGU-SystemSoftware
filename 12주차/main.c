@@ -3,7 +3,6 @@
 #include <time.h>
 #include "parse.h"
 #include "LinkedList.h"
-#include <string.h>
 
 void modify(char** memory, node* node, int startADR) {
     int ADR = node->ADR;
