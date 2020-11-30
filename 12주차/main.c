@@ -3,6 +3,39 @@
 #include <time.h>
 #include "parse.h"
 #include "LinkedList.h"
+#include <string.h>
+
+void modify(char** memory, node* node, int startADR) {
+    int ADR = node->ADR;
+    int len = node->len;
+    char* tmp = malloc(sizeof(char) * (len + 1));
+    len = (len + 1) / 2;
+    for (int i = 0; i < len; i++) {
+        tmp[i*2] = memory[ADR+i][0];
+        tmp[i*2+1] = memory[ADR+i][1];
+    }
+    int value = parseDecimal(tmp);
+    value += startADR;
+    tmp = parseHexadecimal(value);
+    for(int i = 0; i < len; i++) {
+        char* temp = malloc(sizeof(char) * 2);
+        temp[0] = tmp[i*2];
+        temp[1] = tmp[i*2+1];
+        memory[ADR+i] = temp;
+    }
+    free(tmp);
+    return;
+}
+
+void print(char** memory, node* node) {
+    int ADR = node->ADR;
+    int len = node->len;
+    len = (len + 1) / 2;
+    for (int i = 0; i < len; i++) {
+        printf("%d: %s\n", ADR+i, memory[ADR+i]);
+    }
+    return;
+}
 
 int main(int argc, char *argv[]) {
     char *memory[32759];
@@ -15,8 +48,8 @@ int main(int argc, char *argv[]) {
     srand((unsigned int)time(NULL));
     for (int i = 0; i < 32759; i++) {
         memory[i] = malloc(sizeof(char) * 2);
-        // memory[i] = "00";
     }
+
     if (argv[1] == NULL) {
         printf("error: Command line argument is not entered.\n");
         return 0;
@@ -30,13 +63,11 @@ int main(int argc, char *argv[]) {
     c = fgets(CODES, 16, fp);
     c = fgets(CODES, 5, fp);
     size = parseDecimal(CODES);
-    size = 160;
 
-    /* do {
+    do {
         startADR = rand() % 32759;
-    } while (startADR + size > 32758); */
-    startADR = 2260;
-    location = startADR;
+    } while (startADR + size > 32758);
+
     printf("start address: %d\n", startADR);
 
     while (!feof(fp)) {
@@ -44,20 +75,15 @@ int main(int argc, char *argv[]) {
         char a = fgetc(fp);
         if (a == 'T') {
             int i = 0;
-            while (i < 6) {
-                a = fgetc(fp);
-                i++;
-            }
+            c = fgets(CODES, 7, fp);
+            location = startADR + parseDecimal(CODES);
             c = fgets(CODES, 3, fp);
             len = parseDecimal(CODES) * 2;
-            //printf("%d ", len);
             c = fgets(CODES, len + 1, fp);
-            //printf("%s\n", CODES);
             for (int i = 0; i < sizeof(CODES); i += 2) {
                 if (CODES[i] == 0) {
                     break;
                 } else {
-                    //printf("%c%c\n", CODES[i], CODES[i + 1]);
                     memory[location][0] = CODES[i];
                     memory[location][1] = CODES[i + 1];
                     location++;
@@ -74,12 +100,17 @@ int main(int argc, char *argv[]) {
             tail = tail->next;
         }
     }
-    /* for (int i = startADR; i < startADR + size; i++) {
-        printf("%d: %s\n", i, memory[i]);
-    } */
+    printf("Before modifycation\n");
     node* tmp = head->next;
     while (tmp != NULL) {
-        printf("%d %d\n", tmp->ADR, tmp->len);
+        print(memory, tmp);
+        tmp = tmp->next;
+    }
+    tmp = head->next;
+    printf("After modifycation\n");
+    while (tmp != NULL) {
+        modify(memory, tmp, startADR);
+        print(memory, tmp);
         tmp = tmp->next;
     }
 }
